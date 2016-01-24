@@ -5,6 +5,7 @@
  */
 package investiagenofx2.view;
 
+import com.gargoylesoftware.htmlunit.ElementNotFoundException;
 import com.gargoylesoftware.htmlunit.html.HtmlAnchor;
 import com.gargoylesoftware.htmlunit.html.HtmlDivision;
 import com.gargoylesoftware.htmlunit.html.HtmlForm;
@@ -13,6 +14,7 @@ import com.gargoylesoftware.htmlunit.html.HtmlHeading5;
 import com.gargoylesoftware.htmlunit.html.HtmlPage;
 import com.gargoylesoftware.htmlunit.html.HtmlSection;
 import com.gargoylesoftware.htmlunit.html.HtmlPasswordInput;
+import com.gargoylesoftware.htmlunit.html.HtmlSelect;
 import com.gargoylesoftware.htmlunit.html.HtmlSubmitInput;
 import com.gargoylesoftware.htmlunit.html.HtmlTable;
 import com.gargoylesoftware.htmlunit.html.HtmlTextInput;
@@ -64,6 +66,7 @@ import javafx.stage.Modality;
 import javafx.stage.Stage;
 import javafx.util.StringConverter;
 import ofx.OFX;
+import static org.apache.commons.lang3.text.WordUtils.capitalizeFully;
 
 /**
  * FXML Controller class
@@ -179,7 +182,7 @@ public class InvestiaGenOFXController implements Initializable {
         psw_password.setDisable(false);
         psw_password.setText("");
         lbl_ownername.setText("");
-        txt_investiaURL.setDisable(false);
+        txt_investiaURL.setDisable(true);
         mnu_quitter.setDisable(false);
         btn_accounts.setDisable(true);
         btn_summary.setDisable(true);
@@ -229,7 +232,7 @@ public class InvestiaGenOFXController implements Initializable {
     void handleBtnLogin(ActionEvent event) {
         try {
             if (InvestiaGenOFX.debug) {
-                htmlPage = InvestiaGenOFX.getWebClient().getPage("file:///C:/Users/Pierre/Downloads/InvestiaTest/New2/Investia-Login.htm");
+                htmlPage = InvestiaGenOFX.getWebClient().getPage(InvestiaGenOFX.debugPath + "/Investia-Login.htm");
             } else {
                 htmlPage = InvestiaGenOFX.getWebClient().getPage(txt_investiaURL.getText() + "?wcag=true");
             }
@@ -244,8 +247,7 @@ public class InvestiaGenOFXController implements Initializable {
             password.setValueAttribute(psw_password.getText());
             HtmlSubmitInput signInButton = (HtmlSubmitInput) form.getByXPath("//input[contains(@class, 'btn-investia-blue')]").get(0);
             if (InvestiaGenOFX.debug) {
-//                htmlPage = InvestiaGenOFX.getWebClient().getPage("file:///C:/Users/Pierre/Downloads/InvestiaTest/New2/Pierre-DashBoard.htm");
-                htmlPage = InvestiaGenOFX.getWebClient().getPage("file:///C:/Users/Pierre/Downloads/InvestiaTest/New2/Rejean-DashBoard.htm");
+                htmlPage = InvestiaGenOFX.getWebClient().getPage(InvestiaGenOFX.debugFullPath + "-DashBoard.htm");
             } else {
                 htmlPage = signInButton.click();
             }
@@ -276,7 +278,7 @@ public class InvestiaGenOFXController implements Initializable {
     void handleBtnLogout(ActionEvent event) {
         try {
             if (InvestiaGenOFX.debug) {
-                htmlPage = InvestiaGenOFX.getWebClient().getPage("file:///C:/Users/Pierre/Downloads/InvestiaTest/New2/Investia-Login.htm");
+                htmlPage = InvestiaGenOFX.getWebClient().getPage(InvestiaGenOFX.debugPath + "/Investia-Login.htm");
             } else {
                 htmlPage = InvestiaGenOFX.getWebClient().getPage(txt_investiaURL.getText() + "/Account/LogOff" + "?wcag=true");
             }
@@ -290,15 +292,27 @@ public class InvestiaGenOFXController implements Initializable {
     }
 
     private void getAccountsFromWeb() {
-        String[] token = ((HtmlDivision) htmlPage.getHtmlElementById("phase1CustomerName")).asText().split(" ");
-        accountOwnerName = token[token.length - 2] + " " + token[token.length - 1];
+        String name = "Nom Pastrouvé";
+        try {
+            name = ((HtmlDivision) htmlPage.getHtmlElementById("phase1CustomerName")).asText();
+            name = name.replace("Mme ", "").trim();
+            name = name.replace("M. ", "").trim();
+        } catch (ElementNotFoundException ex) {
+            try {
+                name = ((HtmlSelect) htmlPage.getHtmlElementById("selAccount")).asText();
+                name = name.replaceAll("[^A-Za-z ]", "").trim();
+            } catch (ElementNotFoundException ex2) {
+            }
+        }
+        name = capitalizeFully(name);
+        String[] token = name.split(" ");
+        accountOwnerName = token[0] + " " + token[1];
         token = ((HtmlDivision) htmlPage.getByXPath("//div[contains(@class, 'col-xs-4 text-right')]").get(0)).asText().split(" ");
         dataAsDate = LocalDate.parse(token[token.length - 1], DateTimeFormatter.ISO_DATE);
         accounts = new ArrayList<>();
         try {
             if (InvestiaGenOFX.debug) {
-//                htmlPage = InvestiaGenOFX.getWebClient().getPage("file:///C:/Users/Pierre/Downloads/InvestiaTest/New2/Pierre-Investments.htm");
-                htmlPage = InvestiaGenOFX.getWebClient().getPage("file:///C:/Users/Pierre/Downloads/InvestiaTest/New2/Rejean-Investments.htm");
+                htmlPage = InvestiaGenOFX.getWebClient().getPage(InvestiaGenOFX.debugFullPath + "-Investments.htm");
             } else {
                 htmlPage = InvestiaGenOFX.getWebClient().getPage(txt_investiaURL.getText() + "/Investments/ValueOf" + "?wcag=true");
             }
@@ -368,8 +382,7 @@ public class InvestiaGenOFXController implements Initializable {
     void getTransactionsFromWeb() {
         try {
             if (InvestiaGenOFX.debug) {
-//                htmlPage = InvestiaGenOFX.getWebClient().getPage("file:///C:/Users/Pierre/Downloads/InvestiaTest/New2/Pierre-Transactions.htm");
-                htmlPage = InvestiaGenOFX.getWebClient().getPage("file:///C:/Users/Pierre/Downloads/InvestiaTest/New2/Rejean-Transactions.htm");
+                htmlPage = InvestiaGenOFX.getWebClient().getPage(InvestiaGenOFX.debugFullPath + "-Transactions.htm");
             } else {
                 htmlPage = InvestiaGenOFX.getWebClient().getPage(txt_investiaURL.getText() + "/TransactionReports/Select" + "?wcag=true");
             }
@@ -383,8 +396,7 @@ public class InvestiaGenOFXController implements Initializable {
 
             HtmlAnchor generate = (HtmlAnchor) form.getByXPath("//a[contains(@class, 'btn-investia-blue')]").get(0);
             if (InvestiaGenOFX.debug) {
-//                htmlPage = InvestiaGenOFX.getWebClient().getPage("file:///C:/Users/Pierre/Downloads/InvestiaTest/New2/Pierre-Transactions2.htm");
-                htmlPage = InvestiaGenOFX.getWebClient().getPage("file:///C:/Users/Pierre/Downloads/InvestiaTest/New2/Rejean-Transactions.htm");
+                htmlPage = InvestiaGenOFX.getWebClient().getPage(InvestiaGenOFX.debugFullPath + "-Transactions.htm");
             } else {
                 htmlPage = generate.click();
             }
@@ -401,13 +413,11 @@ public class InvestiaGenOFXController implements Initializable {
             if (htmlTable == null) {
                 return;
             }
-//            System.err.println(htmlTable.asText());
             for (int i = 0; i < htmlTable.getRowCount(); i++) {
                 LocalDate transacDate = LocalDate.parse(htmlTable.getCellAt(i, 0).getTextContent(), DateTimeFormatter.ofPattern("dd MMM yyyy", Locale.CANADA_FRENCH));
                 if (transacDate.isBefore(dtp_lastDate.getValue())) {
                     break;
                 }
-
                 String transacType = htmlTable.getCellAt(i, 2).getTextContent();
                 String[] token = transacType.split("[\\-/(]");
                 switch (token[0].replace(" ", "")) {
@@ -433,7 +443,11 @@ public class InvestiaGenOFXController implements Initializable {
                     case "Dépôt":
                     case "Entréed'espèces":
                     case "Fraisd'administration":
+                    case "Retenue":
+                    case "Retrait":
                     case "Sortied'espèces":
+                    case "Transfertd'espècesentrant":
+                    case "Transfertd'espècessortant":
                         continue;
                     default:
                         try {
@@ -575,7 +589,7 @@ public class InvestiaGenOFXController implements Initializable {
         ((Stage) alert.getDialogPane().getScene().getWindow()).getIcons().add(new Image("/myIcons/Teddy-Bear-Sick-icon.png"));
         alert.setTitle("Information");
         alert.setHeaderText("InvestiaGenOFX");
-        alert.setContentText("Version 2.0_0");
+        alert.setContentText("Version 2.0_1");
         alert.show();
     }
 

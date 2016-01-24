@@ -31,15 +31,15 @@
       </MenuBar>
       <AnchorPane AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="25.0">
          <children>
-            <ComboBox fx:id="cbo_clientNum" editable="true" layoutX="204.0" layoutY="52.0" />
-            <PasswordField fx:id="psw_password" layoutX="204.0" layoutY="91.0" />
+            <ComboBox fx:id="cbo_clientNum" editable="true" layoutX="156.0" layoutY="52.0" />
+            <PasswordField fx:id="psw_password" layoutX="156.0" layoutY="91.0" />
             <Button fx:id="btn_login" layoutX="422.0" layoutY="27.0" mnemonicParsing="false" onAction="#handleBtnLogin" prefHeight="36.0" prefWidth="94.0" text="Login" />
             <DatePicker fx:id="dtp_lastDate" layoutX="86.0" layoutY="236.0" />
             <Button fx:id="btn_logout" layoutX="422.0" layoutY="77.0" mnemonicParsing="false" onAction="#handleBtnLogout" prefHeight="36.0" prefWidth="94.0" text="Logout" />
-            <TextField fx:id="txt_investiaURL" layoutX="204.0" layoutY="14.0" />
-            <Label layoutX="102.0" layoutY="18.0" text="Lien Investia :" />
-            <Label layoutX="102.0" layoutY="56.0" text="Numéro de client :" />
-            <Label layoutX="102.0" layoutY="95.0" text="Mot de passe :" />
+            <TextField fx:id="txt_investiaURL" layoutX="156.0" layoutY="14.0" prefHeight="25.0" prefWidth="200.0" />
+            <Label layoutX="54.0" layoutY="18.0" text="Lien Investia :" />
+            <Label layoutX="54.0" layoutY="56.0" text="Numéro de client :" />
+            <Label layoutX="54.0" layoutY="95.0" text="Mot de passe :" />
             <Button fx:id="btn_accounts" layoutX="302.0" layoutY="229.0" mnemonicParsing="false" onAction="#handleBtnAccounts" prefHeight="40.0" prefWidth="240.0" text="Génère le fichier OFX" />
             <Label fx:id="lbl_message" layoutX="86.0" layoutY="353.0" prefHeight="17.0" prefWidth="456.0" />
             <Label layoutX="305.0" layoutY="134.0" text="Comptes de:" underline="true">

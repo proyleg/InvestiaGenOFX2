@@ -34,7 +34,9 @@ import javafx.stage.WindowEvent;
  */
 public class InvestiaGenOFX extends Application {
 
-    public static Boolean debug = true;
+    public static Boolean debug = false;
+    public static String debugPath = "file:///C:/Users/Pierre/Downloads/InvestiaTest/New2";
+    public static String debugFullPath = debugPath + "/Rejean";
     /**
      *
      */
