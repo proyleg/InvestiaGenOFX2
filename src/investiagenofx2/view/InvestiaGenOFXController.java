@@ -26,6 +26,7 @@ import investiagenofx2.util.MyOwnException;
 import investiagenofx2.util.OFXUtilites;
 import investiagenofx2.util.PropertiesInit;
 import investiagenofx2.util.Utilities;
+
 import java.io.File;
 import java.io.IOException;
 
@@ -40,6 +41,7 @@ import java.util.Optional;
 import java.util.ResourceBundle;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+
 import javafx.application.Platform;
 import javafx.beans.value.ChangeListener;
 import javafx.beans.value.ObservableValue;
@@ -66,6 +68,7 @@ import javafx.stage.Modality;
 import javafx.stage.Stage;
 import javafx.util.StringConverter;
 import ofx.OFX;
+
 import static org.apache.commons.lang3.text.WordUtils.capitalizeFully;
 
 /**
@@ -75,13 +78,12 @@ import static org.apache.commons.lang3.text.WordUtils.capitalizeFully;
  */
 public class InvestiaGenOFXController implements Initializable {
 
+    private static final int[] linkAccountToLocalAccountIndex = new int[25];
     private static HtmlPage htmlPage;
     private static ArrayList<Account> accounts;
     private static String accountOwnerName;
     private static LocalDate dataAsDate;
     private static ObservableList<Investment> investments;
-    private static final int[] linkAccountToLocalAccountIndex = new int[25];
-
     @FXML
     private TextField txt_investiaURL;
     @FXML
@@ -106,6 +108,44 @@ public class InvestiaGenOFXController implements Initializable {
     private Label lbl_ownername;
     @FXML
     private Label lbl_message;
+
+    public static void addAccount(Account account) {
+        accounts.add(account);
+        int localAccountIndex = accounts.size() - 1;
+        int linkAccountIndex = PropertiesInit.getLinkAccountIndex(accountOwnerName.split(" ")[0] + "\\" + account.getAccountType() + "\\" + account.getAccountProvider());
+        linkAccountToLocalAccountIndex[linkAccountIndex] = localAccountIndex;
+    }
+
+    private static String genOFXFile(ArrayList<Account> accounts) throws MyOwnException {
+        OFXUtilites.setCurrency("CAD");
+        OFXUtilites.setIntubid("04297");
+        OFX ofx = new OFX();
+        ofx.setSIGNONMSGSRSV1(OFXUtilites.genSignonResponseMessageSet(dataAsDate.format(Utilities.myDateFormat()) + "100000", "Investia"));
+        ofx.setINVSTMTMSGSRSV1(OFXUtilites.genTransacInvestmentStatementResponseMessageSet(accounts));
+        ofx.setSECLISTMSGSRSV1(OFXUtilites.genSecurityListResponseMessageSet(accounts));
+        String fileName;
+        if (accounts.size() > 1) {
+            fileName = "Investia-" + accountOwnerName.split(" ")[0] + "TousLesComptes-" + dataAsDate.format(Utilities.myDateFormat()) + ".qfx";
+        } else {
+            fileName = "Investia-" + accounts.get(0).getAccountID() + "-" + dataAsDate.format(Utilities.myDateFormat()) + ".qfx";
+        }
+        Utilities.genOFXFile(ofx, fileName);
+        return fileName;
+    }
+
+    /**
+     * @return the investments
+     */
+    public static ObservableList<Investment> getInvestments() {
+        return investments;
+    }
+
+    /**
+     * @return the dataAsDate
+     */
+    public static LocalDate getDataAsDate() {
+        return dataAsDate;
+    }
 
     /**
      * Initializes the controller class.
@@ -260,7 +300,7 @@ public class InvestiaGenOFXController implements Initializable {
             HtmlDivision div = (HtmlDivision) htmlPage.getByXPath("//div[contains(@class, 'validation-summary-errors')]").get(0);
             lbl_message.setText(div.asText());
             return;
-        } catch (Exception ex) { // do nothing 
+        } catch (Exception ex) { // do nothing
         }
 
         getAccountsFromWeb();
@@ -336,13 +376,6 @@ public class InvestiaGenOFXController implements Initializable {
         } catch (Exception ex) {
             Logger.getLogger(InvestiaGenOFXController.class.getName()).log(Level.SEVERE, null, ex);
         }
-    }
-
-    public static void addAccount(Account account) {
-        accounts.add(account);
-        int localAccountIndex = accounts.size() - 1;
-        int linkAccountIndex = PropertiesInit.getLinkAccountIndex(accountOwnerName.split(" ")[0] + "\\" + account.getAccountType() + "\\" + account.getAccountProvider());
-        linkAccountToLocalAccountIndex[linkAccountIndex] = localAccountIndex;
     }
 
     @FXML
@@ -500,9 +533,10 @@ public class InvestiaGenOFXController implements Initializable {
     private void getAccountsInvestmentsFromWeb() {
         @SuppressWarnings(("unchecked"))
         List<HtmlTable> tables = (List<HtmlTable>) htmlPage.getByXPath("//table[contains(@class, 'table-striped')]");
+        List<HtmlDivision> divBalancesAs = (List<HtmlDivision>) htmlPage.getByXPath("//div[contains(text(),'Soldes au')]");
+        LocalDate balancesAs = LocalDate.parse(divBalancesAs.get(0).asText().replace("Soldes au ", ""), DateTimeFormatter.ofPattern("dd MMMM yyyy", Locale.CANADA_FRENCH));
         int i = 0;
         for (HtmlTable table : tables) {
-            String debug = table.asText();
             if (!table.asText().contains("Numéro de \r\n compte")) {
                 continue;
             }
@@ -518,8 +552,10 @@ public class InvestiaGenOFXController implements Initializable {
                 Investment investment = new Investment(symbol, name, quantity, lastPrice, marketValue);
                 accounts.get(i).add(investment);
             }
+            if (!balancesAs.equals(dataAsDate)) accounts.get(i).setBalanceDate(balancesAs);
             i++;
         }
+        if (!balancesAs.equals(dataAsDate)) dataAsDate = balancesAs;
     }
 
     private void setAccountsInvestmentsPercentage() {
@@ -543,23 +579,6 @@ public class InvestiaGenOFXController implements Initializable {
                 showInvestmentsSummary(accounts.get(i).getAccountType(), x, y);
             }
         }
-    }
-
-    private static String genOFXFile(ArrayList<Account> accounts) throws MyOwnException {
-        OFXUtilites.setCurrency("CAD");
-        OFXUtilites.setIntubid("04297");
-        OFX ofx = new OFX();
-        ofx.setSIGNONMSGSRSV1(OFXUtilites.genSignonResponseMessageSet(dataAsDate.format(Utilities.myDateFormat()) + "100000", "Investia"));
-        ofx.setINVSTMTMSGSRSV1(OFXUtilites.genTransacInvestmentStatementResponseMessageSet(accounts));
-        ofx.setSECLISTMSGSRSV1(OFXUtilites.genSecurityListResponseMessageSet(accounts));
-        String fileName;
-        if (accounts.size() > 1) {
-            fileName = "Investia-" + accountOwnerName.split(" ")[0] + "TousLesComptes-" + dataAsDate.format(Utilities.myDateFormat()) + ".qfx";
-        } else {
-            fileName = "Investia-" + accounts.get(0).getAccountID() + "-" + dataAsDate.format(Utilities.myDateFormat()) + ".qfx";
-        }
-        Utilities.genOFXFile(ofx, fileName);
-        return fileName;
     }
 
     private void showInvestmentsSummary(String accountType, Double x, Double y) {
@@ -591,19 +610,5 @@ public class InvestiaGenOFXController implements Initializable {
         alert.setHeaderText("InvestiaGenOFX");
         alert.setContentText("Version 2.0_1");
         alert.show();
-    }
-
-    /**
-     * @return the investments
-     */
-    public static ObservableList<Investment> getInvestments() {
-        return investments;
-    }
-
-    /**
-     * @return the dataAsDate
-     */
-    public static LocalDate getDataAsDate() {
-        return dataAsDate;
     }
 }

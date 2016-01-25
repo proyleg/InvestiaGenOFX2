@@ -7,6 +7,7 @@ package investiagenofx2.model;
 
 import java.time.LocalDate;
 import java.util.ArrayList;
+
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 
@@ -19,7 +20,7 @@ public class Account {
     private final String accountType;
     private final String accountProvider;
     private String marketValue = "0.00";
-    private final LocalDate balanceDate;
+    private LocalDate balanceDate;
     private final ObservableList<Investment> investments = FXCollections.observableArrayList();
     private final ArrayList<Transaction> transactions = new ArrayList<>();
     private LocalDate transacDateHigh = LocalDate.parse("1900-01-01");
@@ -60,7 +61,7 @@ public class Account {
 
     /**
      * @param transaction to add to transactions transacDateHigh and
-     * transacDateLow will also be updated if needed
+     *                    transacDateLow will also be updated if needed
      */
     public void add(Transaction transaction) {
         transactions.add(transaction);
@@ -99,8 +100,13 @@ public class Account {
     /**
      * @return the balanceDate
      */
+
     public LocalDate getBalanceDate() {
         return balanceDate;
+    }
+
+    public void setBalanceDate(LocalDate balanceDate) {
+        this.balanceDate = balanceDate;
     }
 
     /**
