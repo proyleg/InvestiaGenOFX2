@@ -8,45 +8,15 @@ package investiagenofx2.util;
 import investiagenofx2.model.Account;
 import investiagenofx2.model.Investment;
 import investiagenofx2.model.Transaction;
+
 import java.util.ArrayList;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import ofx.BuyEnum;
-import ofx.BuyMutualFund;
-import ofx.CurrencyEnum;
-import ofx.FinancialInstitution;
-import ofx.GeneralSecurityInfo;
-import ofx.IncomeEnum;
-import ofx.InvestmentAccount;
-import ofx.InvestmentBuy;
-import ofx.InvestmentPosition;
-import ofx.InvestmentPositionList;
-import ofx.InvestmentSell;
-import ofx.InvestmentStatementResponse;
-import ofx.InvestmentStatementResponseMessageSetV1;
-import ofx.InvestmentStatementTransactionResponse;
-import ofx.InvestmentTransaction;
-import ofx.InvestmentTransactionList;
-import ofx.LanguageEnum;
-import ofx.MutualFundInfo;
-import ofx.MutualFundTypeEnum;
-import ofx.PositionMutualFund;
-import ofx.PositionTypeEnum;
-import ofx.Reinvest;
-import ofx.SecurityId;
-import ofx.SecurityList;
-import ofx.SecurityListResponseMessageSetV1;
-import ofx.SellMutualFund;
-import ofx.SellTypeEnum;
-import ofx.SeverityEnum;
-import ofx.SignonResponse;
-import ofx.SignonResponseMessageSetV1;
-import ofx.Status;
-import ofx.SubAccountEnum;
+
+import ofx.*;
 
 /**
- *
  * @author Pierre
  */
 public class OFXUtilites {
@@ -113,6 +83,10 @@ public class OFXUtilites {
                     break;
                 case "Distribution":
                     investmentTransactionList.getBUYDEBTOrBUYMFOrBUYOPT().add(genReinvest(transaction));
+                    break;
+                case "Credit":
+                case "Debit":
+                    investmentTransactionList.getINVBANKTRAN().add(genBankTransaction(transaction));
                     break;
                 default:
                     try {
@@ -234,6 +208,25 @@ public class OFXUtilites {
         reinvest.setSUBACCTSEC(SubAccountEnum.CASH);
         reinvest.setINCOMETYPE(IncomeEnum.DIV);
         return reinvest;
+    }
+
+    private static InvestmentBankTransaction genBankTransaction(Transaction transaction) {
+        InvestmentBankTransaction investmentBankTransaction = new InvestmentBankTransaction();
+        investmentBankTransaction.setSUBACCTFUND(SubAccountEnum.CASH);
+        StatementTransaction statementTransaction = new StatementTransaction();
+        if (transaction.getType() == "Debit") {
+            statementTransaction.setTRNTYPE(TransactionEnum.DEBIT);
+            statementTransaction.setTRNAMT("-" + transaction.getAmount());
+        } else {
+            statementTransaction.setTRNTYPE(TransactionEnum.CREDIT);
+            statementTransaction.setTRNAMT(transaction.getAmount());
+        }
+        statementTransaction.setDTPOSTED(transaction.getDate().format(Utilities.myDateFormat()) + "100000");
+        statementTransaction.setFITID(transaction.getType() + transaction.getDate().format(Utilities.myDateFormat())+ "100000"+transaction.getAmount());
+        statementTransaction.setNAME(transaction.getType());
+        statementTransaction.setMEMO(transaction.getFitid());
+        investmentBankTransaction.setSTMTTRN(statementTransaction);
+        return investmentBankTransaction;
     }
 
     private static PositionMutualFund genPositionMutualfund(String symbol, String units, String unitPrice, String marketValue, String datePrice) {
