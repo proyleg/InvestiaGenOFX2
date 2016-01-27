@@ -415,31 +415,32 @@ public class InvestiaGenOFXController implements Initializable {
 
     void getTransactionsFromWeb() {
         try {
-            if (InvestiaGenOFX.debug) {
-                htmlPage = InvestiaGenOFX.getWebClient().getPage(InvestiaGenOFX.debugFullPath + "-Transactions.htm");
-            } else {
-                htmlPage = InvestiaGenOFX.getWebClient().getPage(txt_investiaURL.getText() + "/TransactionReports/Select" + "?wcag=true");
-            }
-            @SuppressWarnings(("unchecked"))
-            List<HtmlForm> forms = (List<HtmlForm>) htmlPage.getByXPath("//form");
-            HtmlForm form = forms.get(1);
-            HtmlTextInput selPerFrom = form.getInputByName("selPerFrom");
-            selPerFrom.setValueAttribute(dtp_lastDate.getValue().toString());
-//            HtmlTextInput selPerTo = form.getInputByName("selPerTo");
-//            selPerTo.setValueAttribute("2015-10-31");
-
-            HtmlAnchor generate = (HtmlAnchor) form.getByXPath("//a[contains(@class, 'btn-investia-blue')]").get(0);
-            if (InvestiaGenOFX.debug) {
-                htmlPage = InvestiaGenOFX.getWebClient().getPage(InvestiaGenOFX.debugFullPath + "-Transactions.htm");
-            } else {
-                htmlPage = generate.click();
-            }
-            for (int i = 0; i < 1000; i++) {
-                if (((HtmlDivision) htmlPage.getHtmlElementById("divResult")).asText().contains("Génération en cours")) {
-                    Thread.sleep(1000);
+            if (!htmlPage.getUrl().toString().contains("/TransactionReports/Select")) {
+                if (InvestiaGenOFX.debug) {
+                    htmlPage = InvestiaGenOFX.getWebClient().getPage(InvestiaGenOFX.debugFullPath + "-Transactions.htm");
                 } else {
-                    Thread.sleep(5000);
-                    break;
+                    htmlPage = InvestiaGenOFX.getWebClient().getPage(txt_investiaURL.getText() + "/TransactionReports/Select" + "?wcag=true");
+                    waitForGeneratedTransactions();
+                }
+            }
+            List<HtmlHeading4> h4from = (List<HtmlHeading4>) htmlPage.getByXPath("//h4[contains(text(),'Période: de ')]");
+            String from = h4from.get(0).asText();
+            int index = from.indexOf("Période: de ");
+            LocalDate selFromDate = LocalDate.parse(from.substring(index + 12, index + 12 + 10));
+
+            if (dtp_lastDate.getValue().isBefore(selFromDate)) {
+                @SuppressWarnings(("unchecked"))
+                List<HtmlForm> forms = (List<HtmlForm>) htmlPage.getByXPath("//form");
+                HtmlForm form = forms.get(1);
+                HtmlTextInput selPerFrom = form.getInputByName("selPerFrom");
+                selPerFrom.setValueAttribute(dtp_lastDate.getValue().toString());
+
+                HtmlAnchor generate = (HtmlAnchor) form.getByXPath("//a[contains(@class, 'btn-investia-blue')]").get(0);
+                if (InvestiaGenOFX.debug) {
+                    htmlPage = InvestiaGenOFX.getWebClient().getPage(InvestiaGenOFX.debugFullPath + "-Transactions.htm");
+                } else {
+                    htmlPage = generate.click();
+                    waitForGeneratedTransactions();
                 }
             }
 
@@ -517,6 +518,17 @@ public class InvestiaGenOFXController implements Initializable {
             }
         } catch (Exception ex) {
             Logger.getLogger(InvestiaGenOFXController.class.getName()).log(Level.SEVERE, null, ex);
+        }
+    }
+
+    private void waitForGeneratedTransactions() throws InterruptedException {
+        for (int i = 0; i < 1000; i++) {
+            if (((HtmlDivision) htmlPage.getHtmlElementById("divResult")).asText().contains("Génération en cours")) {
+                Thread.sleep(1000);
+            } else {
+                Thread.sleep(3000);
+                break;
+            }
         }
     }
 
@@ -621,7 +633,7 @@ public class InvestiaGenOFXController implements Initializable {
         ((Stage) alert.getDialogPane().getScene().getWindow()).getIcons().add(new Image("/myIcons/Teddy-Bear-Sick-icon.png"));
         alert.setTitle("Information");
         alert.setHeaderText("InvestiaGenOFX");
-        alert.setContentText("Version 2.0_2");
+        alert.setContentText("Version 2.0_3");
         alert.show();
     }
 }
