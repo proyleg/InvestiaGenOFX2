@@ -423,6 +423,7 @@ public class InvestiaGenOFXController implements Initializable {
                     waitForGeneratedTransactions();
                 }
             }
+            @SuppressWarnings(("unchecked"))
             List<HtmlHeading4> h4from = (List<HtmlHeading4>) htmlPage.getByXPath("//h4[contains(text(),'Période: de ')]");
             String from = h4from.get(0).asText();
             int index = from.indexOf("Période: de ");
@@ -558,6 +559,7 @@ public class InvestiaGenOFXController implements Initializable {
     private void getAccountsInvestmentsFromWeb() {
         @SuppressWarnings(("unchecked"))
         List<HtmlTable> tables = (List<HtmlTable>) htmlPage.getByXPath("//table[contains(@class, 'table-striped')]");
+        @SuppressWarnings(("unchecked"))
         List<HtmlDivision> divBalancesAs = (List<HtmlDivision>) htmlPage.getByXPath("//div[contains(text(),'Soldes au')]");
         LocalDate balancesAs = LocalDate.parse(divBalancesAs.get(0).asText().replace("Soldes au ", ""), DateTimeFormatter.ofPattern("dd MMMM yyyy", Locale.CANADA_FRENCH));
         int i = 0;
@@ -568,6 +570,7 @@ public class InvestiaGenOFXController implements Initializable {
             if (accounts.get(i).getAccountID() == null) {
                 accounts.get(i).setAccountID(table.getCellAt(1, 3).getTextContent());
             }
+            Float total = 0f;
             for (int j = 1; j < table.getRowCount(); j++) {
                 String symbol = table.getCellAt(j, 1).getTextContent();
                 String name = table.getCellAt(j, 0).getTextContent();
@@ -576,7 +579,11 @@ public class InvestiaGenOFXController implements Initializable {
                 String marketValue = table.getCellAt(j, 7).getTextContent().replaceAll("[^0-9,]", "").replace(",", ".");
                 Investment investment = new Investment(symbol, name, quantity, lastPrice, marketValue);
                 accounts.get(i).add(investment);
+                total += Float.valueOf(marketValue);
             }
+            String totalString = String.format("%.02f", total);
+            Investment investment = new Investment("", "Total", totalString, "1.00", totalString);
+            accounts.get(i).add(investment);
             if (!balancesAs.equals(dataAsDate)) accounts.get(i).setBalanceDate(balancesAs);
             i++;
         }
@@ -633,7 +640,7 @@ public class InvestiaGenOFXController implements Initializable {
         ((Stage) alert.getDialogPane().getScene().getWindow()).getIcons().add(new Image("/myIcons/Teddy-Bear-Sick-icon.png"));
         alert.setTitle("Information");
         alert.setHeaderText("InvestiaGenOFX");
-        alert.setContentText("Version 2.0_3");
+        alert.setContentText("Version 2.0_4");
         alert.show();
     }
 }

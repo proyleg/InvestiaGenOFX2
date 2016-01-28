@@ -56,6 +56,7 @@ public class Account {
      */
     public void add(Investment investment) {
         investments.add(investment);
+        if ("Total".equals(investment.getName())) return;
         marketValue = String.format("%.02f", investment.getMarketValue() + Float.valueOf(marketValue));
     }
 
