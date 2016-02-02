@@ -175,8 +175,8 @@ public class InvestiaGenOFXController implements Initializable {
         });
 
         dtp_lastDate.setConverter(new StringConverter<LocalDate>() {
-            String pattern = "yyyy-MM-dd";
-            DateTimeFormatter dateFormatter = DateTimeFormatter.ofPattern(pattern);
+            final String pattern = "yyyy-MM-dd";
+            final DateTimeFormatter dateFormatter = DateTimeFormatter.ofPattern(pattern);
 
             {
                 dtp_lastDate.setPromptText(pattern.toLowerCase());
@@ -213,7 +213,7 @@ public class InvestiaGenOFXController implements Initializable {
         });
     }
 
-    void resetControls() {
+    private void resetControls() {
         btn_login.setDisable(false);
         btn_logout.setDisable(true);
         cbo_clientNum.setDisable(false);
@@ -229,7 +229,7 @@ public class InvestiaGenOFXController implements Initializable {
         btn_summary.setDisable(true);
     }
 
-    void setControlsOnceLogin() {
+    private void setControlsOnceLogin() {
         btn_login.setDisable(true);
         btn_logout.setDisable(false);
         btn_accounts.setDisable(false);
@@ -413,7 +413,7 @@ public class InvestiaGenOFXController implements Initializable {
         showAcountsInvestments(accountsToGen);
     }
 
-    void getTransactionsFromWeb() {
+    private void getTransactionsFromWeb() {
         try {
             if (!htmlPage.getUrl().toString().contains("/TransactionReports/Select")) {
                 if (InvestiaGenOFX.debug) {
@@ -503,8 +503,8 @@ public class InvestiaGenOFXController implements Initializable {
                 String unit = htmlTable.getCellAt(i, 5).getTextContent().replaceAll("[^0-9,]", "").replace(",", ".");
                 String fitid = "";
                 String price = "0.00";
-                String amount = "0.00";
-                if (transacType == "Credit" || transacType == "Debit") {
+                String amount;
+                if ("Credit".equals(transacType)  || "Debit".equals(transacType)) {
                     amount = htmlTable.getCellAt(i, 9).getTextContent().replaceAll("[^0-9,]", "").replace(",", ".");
                     fitid = StringUtils.stripAccents(htmlTable.getCellAt(i, 2).getTextContent());
                 } else {
@@ -600,7 +600,7 @@ public class InvestiaGenOFXController implements Initializable {
         }
     }
 
-    void showAcountsInvestments(ArrayList<Account> accounts) {
+    private void showAcountsInvestments(ArrayList<Account> accounts) {
         double x = InvestiaGenOFX.getPrimaryStage().getX();
         double y = InvestiaGenOFX.getPrimaryStage().getY();
         for (int i = 0; i < accounts.size(); i++) {
@@ -640,7 +640,7 @@ public class InvestiaGenOFXController implements Initializable {
         ((Stage) alert.getDialogPane().getScene().getWindow()).getIcons().add(new Image("/myIcons/Teddy-Bear-Sick-icon.png"));
         alert.setTitle("Information");
         alert.setHeaderText("InvestiaGenOFX");
-        alert.setContentText("Version 2.0_4");
+        alert.setContentText("Version 2.0_5");
         alert.show();
     }
 }

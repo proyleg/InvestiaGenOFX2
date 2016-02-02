@@ -11,6 +11,7 @@ import investiagenofx2.model.Transaction;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -51,7 +52,7 @@ public class OFXUtilites {
         return investmentStatementResponseMessageSet;
     }
 
-    public static InvestmentStatementTransactionResponse genInvestmentStatementTransactionResponse(Account account) {
+    private static InvestmentStatementTransactionResponse genInvestmentStatementTransactionResponse(Account account) {
         InvestmentStatementTransactionResponse investmentStatementTransactionResponse = new InvestmentStatementTransactionResponse();
         investmentStatementTransactionResponse.setTRNUID("0");
         Status status = new Status();
@@ -100,7 +101,7 @@ public class OFXUtilites {
 
         InvestmentPositionList investmentPositionList = new InvestmentPositionList();
         for (Investment investment : account.getInvestments()) {
-            if (investment.getName().contains("Encaisse")) {
+            if (investment.getName().contains("Encaisse") || investment.getName().contains("Total")) {
                 continue;
             }
             investmentPositionList.getPOSMFOrPOSSTOCKOrPOSDEBT().add(genPositionMutualfund(
@@ -128,7 +129,7 @@ public class OFXUtilites {
                 }
             }
             for (Investment investment : account.getInvestments()) {
-                if (!symbols.contains(investment.getSymbol()) && !investment.getName().contains("Encaisse")) {
+                if (!symbols.contains(investment.getSymbol()) && !investment.getName().contains("Encaisse") && !investment.getName().contains("Total")) {
                     securityList.getMFINFOOrSTOCKINFOOrOPTINFO().add(genMutualFundInfo(investment.getSymbol()));
                     symbols.add(investment.getSymbol());
                 }
@@ -214,7 +215,7 @@ public class OFXUtilites {
         InvestmentBankTransaction investmentBankTransaction = new InvestmentBankTransaction();
         investmentBankTransaction.setSUBACCTFUND(SubAccountEnum.CASH);
         StatementTransaction statementTransaction = new StatementTransaction();
-        if (transaction.getType() == "Debit") {
+        if ("Debit".equals(transaction.getType())) {
             statementTransaction.setTRNTYPE(TransactionEnum.DEBIT);
             statementTransaction.setTRNAMT("-" + transaction.getAmount());
         } else {
@@ -222,7 +223,7 @@ public class OFXUtilites {
             statementTransaction.setTRNAMT(transaction.getAmount());
         }
         statementTransaction.setDTPOSTED(transaction.getDate().format(Utilities.myDateFormat()) + "100000");
-        statementTransaction.setFITID(transaction.getType() + transaction.getDate().format(Utilities.myDateFormat())+ "100000"+transaction.getAmount());
+        statementTransaction.setFITID(transaction.getType() + transaction.getDate().format(Utilities.myDateFormat()) + "100000" + transaction.getAmount());
         statementTransaction.setNAME(transaction.getType());
         statementTransaction.setMEMO(transaction.getFitid());
         investmentBankTransaction.setSTMTTRN(statementTransaction);

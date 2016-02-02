@@ -59,10 +59,9 @@ public class Utilities {
     }
 
     public static void launchFile(String file) throws IOException {
-        String command = "";
         Process pr;
         String quickenCmd = Advapi32Util.registryGetStringValue(HKEY_CLASSES_ROOT, "qfxfile\\shell\\Open\\command", "");
-        command = quickenCmd.substring(0, quickenCmd.lastIndexOf(" ")) + " \"" + new File(file).getAbsolutePath() + "\"";
+        String command = quickenCmd.substring(0, quickenCmd.lastIndexOf(" ")) + " \"" + new File(file).getAbsolutePath() + "\"";
         try {
             pr = Runtime.getRuntime().exec(command);
             pr.waitFor(10, TimeUnit.SECONDS);

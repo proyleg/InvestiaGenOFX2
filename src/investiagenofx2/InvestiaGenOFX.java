@@ -8,12 +8,11 @@ package investiagenofx2;
 import com.gargoylesoftware.htmlunit.BrowserVersion;
 import com.gargoylesoftware.htmlunit.WebClient;
 import com.gargoylesoftware.htmlunit.util.Cookie;
-import com.gargoylesoftware.htmlunit.util.WebClientUtils;
+//import com.gargoylesoftware.htmlunit.util.WebClientUtils;
 import static investiagenofx2.util.PropertiesInit.getProperties;
 import java.io.IOException;
 import java.util.Locale;
 import java.util.logging.LogManager;
-import java.util.logging.Logger;
 import javafx.application.Application;
 import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.SimpleBooleanProperty;
@@ -34,15 +33,14 @@ import javafx.stage.WindowEvent;
  */
 public class InvestiaGenOFX extends Application {
 
-    public static Boolean debug = false;
-    public static String debugPath = "file:///C:/Users/Pierre/Downloads/InvestiaTest/New2";
+    public static final Boolean debug = false;
+    public static final String debugPath = "file:///C:/Users/Pierre/Downloads/InvestiaTest/New2";
     public static String debugFullPath = debugPath + "/Rejean";
     /**
      *
      */
     private static Stage pStage;
     private static WebClient webClient;
-    private static Logger log;
 
     @Override
     public void start(Stage primaryStage) throws Exception {
@@ -87,8 +85,6 @@ public class InvestiaGenOFX extends Application {
         } catch (IOException e) {
             System.out.println("Unable to initialize logging.properties");
         }
-        log = Logger.getLogger(InvestiaGenOFX.class.getName());
-
         getProperties();
     }
 

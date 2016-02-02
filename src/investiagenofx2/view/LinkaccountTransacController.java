@@ -25,7 +25,6 @@ import javafx.stage.Stage;
  */
 public class LinkaccountTransacController implements Initializable {
 
-    private Stage dialogStage;
     private String linkAccountTransac;
     private String user;
 
