@@ -397,6 +397,8 @@ public class InvestiaGenOFXController implements Initializable {
         Alert alert = new Alert(Alert.AlertType.CONFIRMATION);
         alert.setTitle("Confirmation ");
         alert.setHeaderText(null);
+        alert.setX(InvestiaGenOFX.getPrimaryStage().getX() + 100);
+        alert.setY(InvestiaGenOFX.getPrimaryStage().getY() + 100);
         alert.setContentText("Fichier OFX généré \rLance le fichier OFX?");
         ButtonType buttonTypeYes = new ButtonType("Oui");
         ButtonType buttonTypeNo = new ButtonType("Non");
@@ -483,6 +485,7 @@ public class InvestiaGenOFXController implements Initializable {
                     case "Retenue":
                         transacType = "Debit";
                         break;
+                    case "Créditenespèces":
                     case "Entréed'espèces":
                     case "Fraisd'administration":
                     case "Sortied'espèces":
@@ -639,8 +642,10 @@ public class InvestiaGenOFXController implements Initializable {
         Alert alert = new Alert(Alert.AlertType.INFORMATION);
         ((Stage) alert.getDialogPane().getScene().getWindow()).getIcons().add(new Image("/myIcons/Teddy-Bear-Sick-icon.png"));
         alert.setTitle("Information");
+        alert.setX(InvestiaGenOFX.getPrimaryStage().getX() + 100);
+        alert.setY(InvestiaGenOFX.getPrimaryStage().getY() + 100);
         alert.setHeaderText("InvestiaGenOFX");
-        alert.setContentText("Version 2.0_5");
+        alert.setContentText("Version 2.0_6");
         alert.show();
     }
 }
